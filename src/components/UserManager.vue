@@ -1,9 +1,8 @@
 <template>
   <div class="container">
     <div class="boxTitre">
-          <p class="titre">API REST Vue3</p>
+      <p class="titre">API REST Vue3</p>
     </div>
-    
 
     <form @submit.prevent="handleSubmit" class="form">
       <input v-model="form.name" type="text" placeholder="Nom" required />
@@ -15,7 +14,13 @@
       </button>
     </form>
 
-    <table class="table">
+    <!-- Zone de chargement -->
+    <div v-if="isLoading" class="loading">
+      Chargement des utilisateurs...
+    </div>
+
+    <!-- Tableau affiché uniquement si les données sont prêtes -->
+    <table v-else class="table">
       <thead>
         <tr>
           <th>Nom</th>
@@ -51,6 +56,7 @@ export default {
   setup() {
     const users = ref([])
     const isEditing = ref(false)
+    const isLoading = ref(false)
     const selectedId = ref(null)
     const toast = useToast()
 
@@ -94,12 +100,15 @@ export default {
     }
 
     const fetchUsers = async () => {
+      isLoading.value = true
       try {
         const res = await axios.get('http://localhost:5000/api/users')
         users.value = res.data.users
       } catch (err) {
         toastError('Erreur lors du chargement des utilisateurs.')
         console.error(err)
+      } finally {
+        isLoading.value = false
       }
     }
 
@@ -126,7 +135,6 @@ export default {
           toastSuccess('Utilisateur ajouté avec succès.')
         }
 
-        // Réinitialisation du formulaire
         form.name = ''
         form.email = ''
         form.password = ''
@@ -136,8 +144,7 @@ export default {
 
         await fetchUsers()
       } catch (err) {
-        console.log(err.response.data.error);
-        
+        console.log(err.response.data.error)
         toastError(`${err.response.data.error}`)
       }
     }
@@ -145,7 +152,7 @@ export default {
     const editUser = (user) => {
       form.name = user.name
       form.email = user.email
-      form.password = `` 
+      form.password = ''
       form.age = user.age
       selectedId.value = user._id
       isEditing.value = true
@@ -168,6 +175,7 @@ export default {
       users,
       form,
       isEditing,
+      isLoading,
       handleSubmit,
       editUser,
       deleteUser
@@ -259,7 +267,7 @@ button[type="submit"]:hover {
   background-color: #bb2d3b;
 }
 
-.boxTitre{
+.boxTitre {
   width: 100%;
   display: flex;
   justify-content: center;
@@ -270,9 +278,19 @@ button[type="submit"]:hover {
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
 }
-.titre{
+
+.titre {
   font-weight: bold;
   font-size: 32px;
   color: white;
+}
+
+/* Style loading */
+.loading {
+  text-align: center;
+  font-weight: bold;
+  color: #6366F1;
+  padding: 1rem;
+  font-size: 18px;
 }
 </style>
